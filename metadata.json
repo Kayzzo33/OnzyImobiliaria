@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Catálogo Imobiliário Inteligente",
+  "description": "Uma plataforma web moderna para imobiliária com catálogo digital de imóveis, painel administrativo completo e assistente IA integrado para encontrar o imóvel perfeito.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
