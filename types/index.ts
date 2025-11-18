@@ -34,6 +34,7 @@ export interface Property {
   featured: boolean;
   score: ImovelScore;
   created_at?: string;
+  views?: number; // New field for view tracking
 
   // Detailed amenities
   furnished?: boolean;

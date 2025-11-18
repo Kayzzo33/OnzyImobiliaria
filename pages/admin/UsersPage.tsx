@@ -1,13 +1,20 @@
 
 import React, { useEffect, useState } from 'react';
-import { Mail, Shield, MoreVertical } from 'lucide-react';
+import { Mail, Shield, MoreVertical, PlusCircle, Copy, X, Check } from 'lucide-react';
 import { getUsers } from '../../services/userService';
 import type { UserProfile } from '../../types';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Card from '../../components/ui/Card';
+import toast from 'react-hot-toast';
 
 const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [generatedLink, setGeneratedLink] = useState('');
 
   useEffect(() => {
       const fetchUsers = async () => {
@@ -19,6 +26,25 @@ const UsersPage: React.FC = () => {
       fetchUsers();
   }, []);
 
+  const generateInviteLink = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Create a link that points to the login page with signup mode and pre-filled email
+    const baseUrl = window.location.origin + window.location.pathname;
+    const link = `${baseUrl}#/login?mode=signup&email=${encodeURIComponent(inviteEmail)}`;
+    setGeneratedLink(link);
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedLink);
+    toast.success('Link copiado para a área de transferência!');
+  };
+
+  const closeInviteModal = () => {
+    setIsInviteModalOpen(false);
+    setInviteEmail('');
+    setGeneratedLink('');
+  };
+
   if (loading) return <LoadingSpinner />;
 
   return (
@@ -28,9 +54,9 @@ const UsersPage: React.FC = () => {
           <h1 className="text-3xl font-bold font-heading text-neutral-800">Gerenciar Usuários</h1>
           <p className="text-neutral-600">Controle de acesso da equipe.</p>
         </div>
-        <button className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium opacity-50 cursor-not-allowed" title="Para adicionar, use a página de Registro (não implementada neste MVP)">
-          + Convidar Usuário
-        </button>
+        <Button onClick={() => setIsInviteModalOpen(true)} iconLeft={<PlusCircle size={18}/>}>
+          Convidar Usuário
+        </Button>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden border border-neutral-200">
@@ -91,6 +117,71 @@ const UsersPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Modal de Convite */}
+      {isInviteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+          <Card className="w-full max-w-md relative p-6">
+            <button 
+              onClick={closeInviteModal}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600"
+            >
+              <X size={20} />
+            </button>
+            
+            <h2 className="text-xl font-bold font-heading text-neutral-800 mb-4">Convidar Novo Usuário</h2>
+            
+            {!generatedLink ? (
+              <form onSubmit={generateInviteLink} className="space-y-4">
+                <p className="text-sm text-neutral-600">
+                  Insira o e-mail do novo membro da equipe. Um link de cadastro exclusivo será gerado.
+                </p>
+                <Input 
+                  label="E-mail do Colaborador"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="colaborador@exemplo.com"
+                  required
+                />
+                <div className="flex justify-end pt-2">
+                  <Button type="submit">Gerar Link de Convite</Button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-green-50 p-4 rounded-lg flex items-start gap-3">
+                  <div className="bg-green-100 p-1 rounded-full text-green-600 mt-0.5">
+                    <Check size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-green-800">Link Gerado!</h3>
+                    <p className="text-xs text-green-700 mt-1">Envie este link para o novo usuário para que ele possa criar sua conta e senha.</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-neutral-800 mb-1">Link de Cadastro</label>
+                  <div className="flex gap-2">
+                    <input 
+                      readOnly 
+                      value={generatedLink} 
+                      className="w-full px-3 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-sm text-neutral-600 font-mono"
+                    />
+                    <Button onClick={copyToClipboard} variant="secondary" iconLeft={<Copy size={16} />}>
+                      Copiar
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <Button variant="ghost" onClick={closeInviteModal}>Fechar</Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

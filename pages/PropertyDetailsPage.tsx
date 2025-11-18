@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import type { Property } from '../types';
-import { getPropertyById } from '../services/propertyService';
+import { getPropertyById, incrementPropertyViews } from '../services/propertyService';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const PropertyDetailsPage: React.FC = () => {
@@ -17,6 +17,8 @@ const PropertyDetailsPage: React.FC = () => {
                 const data = await getPropertyById(id);
                 setProperty(data || null);
                 setLoading(false);
+                // Increment view count
+                incrementPropertyViews(id);
             }
         };
         fetchProperty();
@@ -50,7 +52,10 @@ const PropertyDetailsPage: React.FC = () => {
                 {property.finalidade === 'venda' ? 'Imóvel à Venda' : 'Imóvel para Alugar'}
             </span>
             <h1 className="text-4xl font-bold font-heading text-neutral-800 mt-1">{property.title}</h1>
-            <p className="text-lg text-neutral-600 mt-2">{property.neighborhood}, {property.city}</p>
+            <div className="flex justify-between items-end mt-2">
+                <p className="text-lg text-neutral-600">{property.neighborhood}, {property.city}</p>
+                <p className="text-sm text-neutral-500">{property.views || 0} visualizações</p>
+            </div>
             
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-2">

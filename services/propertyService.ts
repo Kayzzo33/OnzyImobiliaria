@@ -37,6 +37,7 @@ export const getAllProperties = async (): Promise<Property[]> => {
       balcony: property.balcony || false,
       built_in_closets: property.built_in_closets || false,
       air_conditioning: property.air_conditioning || false,
+      views: property.views || 0,
       score: score
     } as Property;
   });
@@ -74,6 +75,7 @@ export const getFeaturedProperties = async (): Promise<Property[]> => {
       balcony: property.balcony || false,
       built_in_closets: property.built_in_closets || false,
       air_conditioning: property.air_conditioning || false,
+      views: property.views || 0,
       score: score
     } as Property;
   });
@@ -111,8 +113,15 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
         balcony: data.balcony || false,
         built_in_closets: data.built_in_closets || false,
         air_conditioning: data.air_conditioning || false,
+        views: data.views || 0,
         score: score
     } as Property;
+};
+
+export const incrementPropertyViews = async (id: string) => {
+    // Calls the database function 'increment_views'
+    const { error } = await supabase.rpc('increment_views', { row_id: id });
+    if (error) console.error('Error incrementing views:', error);
 };
 
 export const getCities = async (): Promise<City[]> => {
