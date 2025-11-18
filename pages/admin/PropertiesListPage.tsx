@@ -65,7 +65,12 @@ const PropertiesListPage: React.FC = () => {
       const { error } = await deleteProperty(id);
       toast.dismiss(toastId);
       if (error) {
-        toast.error('Erro ao excluir imóvel: ' + error.message);
+        console.error(error);
+        if (error.message && error.message.includes('row-level security')) {
+            toast.error('Erro de Permissão: Verifique as Policies (RLS) no Supabase.');
+        } else {
+            toast.error('Erro ao excluir imóvel: ' + error.message);
+        }
       } else {
         toast.success('Imóvel excluído com sucesso!');
         fetchProperties(); // Refresh the list

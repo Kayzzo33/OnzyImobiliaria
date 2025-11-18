@@ -113,7 +113,12 @@ const PropertyFormModal: React.FC<PropertyFormModalProps> = ({ isOpen, onClose, 
             toast.success(`Imóvel ${isEditing ? 'atualizado' : 'adicionado'} com sucesso!`);
             onSave();
         } catch (err: any) {
-            toast.error(`Erro: ${err.message}`);
+            console.error(err);
+            if (err.message && err.message.includes('row-level security')) {
+                 toast.error('Erro de Permissão: Verifique as Policies (RLS) no Supabase.');
+            } else {
+                 toast.error(`Erro: ${err.message}`);
+            }
         } finally {
             setIsSaving(false);
             toast.dismiss(toastId);

@@ -33,7 +33,7 @@ export interface Property {
   finalidade: PropertyPurpose;
   featured: boolean;
   score: ImovelScore;
-  created_at?: string; // Campo adicionado pelo Supabase
+  created_at?: string;
 
   // Detailed amenities
   furnished?: boolean;
@@ -60,6 +60,46 @@ export interface ChatMessage {
   sender: 'user' | 'bot';
   text: string;
   properties?: Property[];
+}
+
+export type ScheduleStatus = 'pending' | 'confirmed' | 'done' | 'canceled';
+
+export interface Schedule {
+  id: number;
+  client_name: string;
+  client_phone: string;
+  property_id: string;
+  date: string;
+  time: string;
+  status: ScheduleStatus;
+  created_at?: string;
+  // Optional joined fields
+  properties?: {
+    codigo: string;
+    title: string;
+  };
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  status: string;
+  avatar_url: string | null;
+}
+
+export interface AppSettings {
+  id?: number;
+  company_name: string;
+  cnpj: string;
+  description: string;
+  phone: string;
+  contact_email: string;
+  address: string;
+  city_state: string;
+  instagram: string;
+  facebook: string;
 }
 
 // Export Supabase User type for consistency

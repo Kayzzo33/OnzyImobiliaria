@@ -1,6 +1,7 @@
+
 import { supabase } from './supabase';
 import type { Property, City } from '../types';
-import { MOCK_PROPERTIES } from '../utils/constants'; // Keep for score data for now
+import { MOCK_PROPERTIES } from '../utils/constants'; // Keep for fallback if needed
 
 // This service now fetches real data from Supabase.
 
@@ -16,12 +17,27 @@ export const getAllProperties = async (): Promise<Property[]> => {
     return [];
   }
 
-  // For demonstration, we'll merge mock score data since it's not in the DB yet
   return data.map(property => {
+    // If score is missing in DB (old records), try to find in mock or default
     const mockProperty = MOCK_PROPERTIES.find(p => p.codigo === property.codigo);
+    const score = property.score || (mockProperty ? mockProperty.score : { location: 70, costBenefit: 70, appreciation: 70, analysis: 'Análise pendente.' });
+
     return {
       ...property,
-      score: mockProperty ? mockProperty.score : { location: 70, costBenefit: 70, appreciation: 70, analysis: 'Análise pendente.' },
+      // Ensure amenities are present (defaulting to false if null in DB)
+      furnished: property.furnished || false,
+      pets_allowed: property.pets_allowed || false,
+      leisure_area: property.leisure_area || false,
+      gym: property.gym || false,
+      pool: property.pool || false,
+      barbecue_grill: property.barbecue_grill || false,
+      backyard: property.backyard || false,
+      concierge_24h: property.concierge_24h || false,
+      elevator: property.elevator || false,
+      balcony: property.balcony || false,
+      built_in_closets: property.built_in_closets || false,
+      air_conditioning: property.air_conditioning || false,
+      score: score
     } as Property;
   });
 };
@@ -42,9 +58,23 @@ export const getFeaturedProperties = async (): Promise<Property[]> => {
   
   return data.map(property => {
     const mockProperty = MOCK_PROPERTIES.find(p => p.codigo === property.codigo);
+    const score = property.score || (mockProperty ? mockProperty.score : { location: 70, costBenefit: 70, appreciation: 70, analysis: 'Análise pendente.' });
+
     return {
       ...property,
-      score: mockProperty ? mockProperty.score : { location: 70, costBenefit: 70, appreciation: 70, analysis: 'Análise pendente.' },
+      furnished: property.furnished || false,
+      pets_allowed: property.pets_allowed || false,
+      leisure_area: property.leisure_area || false,
+      gym: property.gym || false,
+      pool: property.pool || false,
+      barbecue_grill: property.barbecue_grill || false,
+      backyard: property.backyard || false,
+      concierge_24h: property.concierge_24h || false,
+      elevator: property.elevator || false,
+      balcony: property.balcony || false,
+      built_in_closets: property.built_in_closets || false,
+      air_conditioning: property.air_conditioning || false,
+      score: score
     } as Property;
   });
 };
@@ -55,7 +85,7 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
         .from('properties')
         .select('*')
         .eq('id', id)
-        .single(); // .single() returns one object instead of an array
+        .single();
 
     if (error) {
         console.error('Error fetching property by ID:', error);
@@ -65,9 +95,23 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
     if (!data) return undefined;
 
     const mockProperty = MOCK_PROPERTIES.find(p => p.codigo === data.codigo);
+    const score = data.score || (mockProperty ? mockProperty.score : { location: 70, costBenefit: 70, appreciation: 70, analysis: 'Análise pendente.' });
+
     return {
         ...data,
-        score: mockProperty ? mockProperty.score : { location: 70, costBenefit: 70, appreciation: 70, analysis: 'Análise pendente.' },
+        furnished: data.furnished || false,
+        pets_allowed: data.pets_allowed || false,
+        leisure_area: data.leisure_area || false,
+        gym: data.gym || false,
+        pool: data.pool || false,
+        barbecue_grill: data.barbecue_grill || false,
+        backyard: data.backyard || false,
+        concierge_24h: data.concierge_24h || false,
+        elevator: data.elevator || false,
+        balcony: data.balcony || false,
+        built_in_closets: data.built_in_closets || false,
+        air_conditioning: data.air_conditioning || false,
+        score: score
     } as Property;
 };
 
@@ -80,7 +124,6 @@ export const getCities = async (): Promise<City[]> => {
     
     if (error) {
         console.error('Error fetching cities:', error);
-        // Fallback to deriving from properties if cities table is empty/errors
         const { data: propertiesData } = await supabase.from('properties').select('city');
         if (!propertiesData) return [];
         const cities = propertiesData.reduce((acc, curr) => {
@@ -94,7 +137,7 @@ export const getCities = async (): Promise<City[]> => {
     return data as City[];
 };
 
-export const addProperty = async (propertyData: Omit<Property, 'id' | 'created_at' | 'score' | 'images'> & { images: string[] }) => {
+export const addProperty = async (propertyData: Omit<Property, 'id' | 'created_at' | 'images'> & { images: string[] }) => {
     const { data, error } = await supabase
         .from('properties')
         .insert([propertyData])
@@ -103,7 +146,7 @@ export const addProperty = async (propertyData: Omit<Property, 'id' | 'created_a
     return { data, error };
 };
 
-export const updateProperty = async (id: string, propertyData: Partial<Omit<Property, 'id' | 'created_at' | 'score'>>) => {
+export const updateProperty = async (id: string, propertyData: Partial<Omit<Property, 'id' | 'created_at'>>) => {
     const { data, error } = await supabase
         .from('properties')
         .update(propertyData)
