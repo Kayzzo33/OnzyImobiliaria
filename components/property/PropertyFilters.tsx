@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { MapPin, Home, DollarSign, Search } from 'lucide-react';
+import { MapPin, Home, DollarSign, Search, Tag, Building } from 'lucide-react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { getCities } from '../../services/propertyService';
@@ -19,16 +19,15 @@ const PropertyFilters: React.FC = () => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg -mt-16 relative z-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-        <div className="lg:col-span-2">
-          <label className="block text-sm font-medium text-neutral-800 mb-1">Localização</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-neutral-800 mb-1">Finalidade</label>
           <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
+            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
             <select className="w-full pl-10 pr-4 py-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow duration-200 appearance-none">
-              <option>Todas as cidades</option>
-              {cities.map(city => (
-                <option key={city.id} value={city.name}>{city.name}</option>
-              ))}
+              <option>Venda ou Aluguel</option>
+              <option value="venda">Comprar</option>
+              <option value="aluguel">Alugar</option>
             </select>
           </div>
         </div>
@@ -45,6 +44,18 @@ const PropertyFilters: React.FC = () => {
           </div>
         </div>
         <div>
+          <label className="block text-sm font-medium text-neutral-800 mb-1">Cidade</label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
+            <select className="w-full pl-10 pr-4 py-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow duration-200 appearance-none">
+              <option>Todas as cidades</option>
+              {cities.map(city => (
+                <option key={city.id} value={city.name}>{city.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div>
             <label className="block text-sm font-medium text-neutral-800 mb-1">Faixa de Preço</label>
             <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
@@ -56,9 +67,17 @@ const PropertyFilters: React.FC = () => {
                 </select>
             </div>
         </div>
-        <div className="mt-4 md:mt-0">
+      </div>
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+        <div className="sm:col-span-2">
+            <label className="block text-sm font-medium text-neutral-800 mb-1">Código do Imóvel</label>
+            <Input 
+                placeholder="Digite o código (ex: AP001)"
+            />
+        </div>
+        <div className="">
           <Button size="lg" className="w-full h-[50px]" iconLeft={<Search size={20} />}>
-            Buscar
+            Buscar Imóveis
           </Button>
         </div>
       </div>

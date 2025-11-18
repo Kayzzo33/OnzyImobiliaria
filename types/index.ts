@@ -1,6 +1,9 @@
 
+import type { User } from '@supabase/supabase-js';
+
 export type PropertyType = 'casa' | 'apartamento' | 'kitnet';
 export type PropertyStatus = 'disponivel' | 'alugado' | 'vendido';
+export type PropertyPurpose = 'venda' | 'aluguel';
 
 export interface ImovelScore {
   location: number;
@@ -11,12 +14,14 @@ export interface ImovelScore {
 
 export interface Property {
   id: string;
+  codigo: string;
   title: string;
   description: string;
   type: PropertyType;
   price: number;
   bedrooms: number;
   bathrooms: number;
+  vagas: number;
   area_m2: number;
   address: string;
   city: string;
@@ -25,8 +30,24 @@ export interface Property {
   longitude: number;
   images: string[];
   status: PropertyStatus;
+  finalidade: PropertyPurpose;
   featured: boolean;
   score: ImovelScore;
+  created_at?: string; // Campo adicionado pelo Supabase
+
+  // Detailed amenities
+  furnished?: boolean;
+  pets_allowed?: boolean;
+  leisure_area?: boolean;
+  gym?: boolean;
+  pool?: boolean;
+  barbecue_grill?: boolean;
+  backyard?: boolean;
+  concierge_24h?: boolean;
+  elevator?: boolean;
+  balcony?: boolean;
+  built_in_closets?: boolean;
+  air_conditioning?: boolean;
 }
 
 export interface City {
@@ -40,3 +61,6 @@ export interface ChatMessage {
   text: string;
   properties?: Property[];
 }
+
+// Export Supabase User type for consistency
+export type { User };

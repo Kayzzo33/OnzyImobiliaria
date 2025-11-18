@@ -1,6 +1,5 @@
-
-import { GoogleGenAI } from "@google/genai";
-import type { ChatMessage, Property } from '../types';
+import { GoogleGenAI, Type } from "@google/genai";
+import type { ChatMessage, ImovelScore, Property } from '../types';
 
 let ai: GoogleGenAI | null = null;
 
@@ -58,8 +57,7 @@ export const continueChat = async (history: ChatMessage[], newMessage: string, p
 // Feature: Use Google Maps data
 export const findNearbyPointsOfInterest = async (latitude: number, longitude: number): Promise<string> => {
     const model = getGeminiAI().models;
-    const prompt = "Quais são os pontos de interesse importantes (supermercados, escolas, hospitais, parques) perto da latitude " + latitude + " e longitude " + longitude + "? Liste os 5 mais relevantes com seus nomes e tipo.";
-
+    const prompt = "Quais são os pontos de interesse importantes (supermercados, escolas, hospitais, parques) perto da latitude " + latitude + " e longitude " + longitude + "? Liste os 5 mais relevantes com seus nomes e tipo";
     try {
         const response = await model.generateContent({
             model: "gemini-2.5-flash",
@@ -69,57 +67,82 @@ export const findNearbyPointsOfInterest = async (latitude: number, longitude: nu
             },
         });
         return response.text;
-    } catch (error) {
-        console.error("Error with Maps Grounding:", error);
-        return "Não foi possível buscar pontos de interesse próximos.";
+    } catch(e) {
+        console.error("Error with Google Maps grounding:", e);
+        return "Não foi possível buscar pontos de interesse no momento.";
     }
 };
 
-// Feature: Analyze images
-export const analyzeImageWithGemini = async (base64Image: string, mimeType: string): Promise<string> => {
+export const generatePropertyDescription = async (property: Partial<Property>): Promise<string> => {
     const model = getGeminiAI().models;
-    const imagePart = {
-      inlineData: {
-        mimeType: mimeType,
-        data: base64Image,
-      },
-    };
-    const textPart = {
-      text: "Você é um especialista em design de interiores. Analise esta imagem de um imóvel e descreva o estilo de decoração, os pontos fortes e sugira uma pequena melhoria."
-    };
+    const prompt = `
+        Gere uma descrição de marketing atraente e profissional para um imóvel com as seguintes características.
+        Seja criativo e destaque os pontos positivos. A descrição deve ter no máximo 3 frases.
+
+        - Tipo de Imóvel: ${property.type}
+        - Título: ${property.title}
+        - Quartos: ${property.bedrooms}
+        - Banheiros: ${property.bathrooms}
+        - Vagas na Garagem: ${property.vagas}
+        - Área: ${property.area_m2} m²
+        - Bairro: ${property.neighborhood}
+        - Cidade: ${property.city}
+        - Preço: R$ ${property.price} (${property.finalidade})
+
+        Foque em adjetivos que evoquem conforto, modernidade, e uma boa oportunidade de negócio.
+    `;
 
     try {
         const response = await model.generateContent({
             model: 'gemini-2.5-flash',
-            contents: { parts: [imagePart, textPart] },
+            contents: prompt,
         });
-        return response.text;
+        return response.text.trim();
     } catch (error) {
-        console.error("Error analyzing image:", error);
-        return "Não foi possível analisar a imagem.";
+        console.error("Error generating property description:", error);
+        return "Não foi possível gerar a descrição. Tente novamente.";
     }
 };
 
-// Feature: Generate images with a prompt
-export const generateStagingImage = async (prompt: string): Promise<string> => {
+export const generatePropertyScore = async (property: Partial<Property>): Promise<ImovelScore | null> => {
     const model = getGeminiAI().models;
+    const prompt = `
+        Analise o seguinte imóvel e gere um "Imóvel Score" em formato JSON.
+        O score deve conter notas de 0 a 100 para 'location', 'costBenefit', e 'appreciation'.
+        Inclua também uma 'analysis' de uma frase resumindo os pontos fortes.
+
+        Dados do Imóvel:
+        - Tipo: ${property.type}
+        - Bairro: ${property.neighborhood}
+        - Cidade: ${property.city}
+        - Preço: R$ ${property.price} (${property.finalidade})
+        - Área: ${property.area_m2} m²
+        - Quartos: ${property.bedrooms}
+        - Banheiros: ${property.bathrooms}
+    `;
+
     try {
-        const response = await model.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: `Uma foto de alta qualidade de um interior de imóvel com o seguinte estilo: ${prompt}. Foco em realismo e design moderno.`,
+        const response = await model.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
             config: {
-                numberOfImages: 1,
-                aspectRatio: '16:9',
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        location: { type: Type.NUMBER, description: "Nota de 0 a 100 para a localização." },
+                        costBenefit: { type: Type.NUMBER, description: "Nota de 0 a 100 para o custo-benefício." },
+                        appreciation: { type: Type.NUMBER, description: "Nota de 0 a 100 para o potencial de valorização." },
+                        analysis: { type: Type.STRING, description: "Análise curta de uma frase." },
+                    },
+                    required: ["location", "costBenefit", "appreciation", "analysis"]
+                },
             },
         });
-        
-        if (response.generatedImages && response.generatedImages.length > 0) {
-            const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-            return `data:image/png;base64,${base64ImageBytes}`;
-        }
-        return "";
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText) as ImovelScore;
     } catch (error) {
-        console.error("Error generating image:", error);
-        throw new Error("Não foi possível gerar a imagem.");
+        console.error("Error generating property score:", error);
+        return null;
     }
 };

@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, BedDouble, Bath, Ruler, Heart, Star, BarChart } from 'lucide-react';
+import { MapPin, BedDouble, Bath, Ruler, Heart, Star, BarChart, Car } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
 
@@ -31,10 +30,18 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', {
+    // FIX: Explicitly typed `options` as `Intl.NumberFormatOptions` to allow dynamically adding properties.
+    let options: Intl.NumberFormatOptions = {
       style: 'currency',
       currency: 'BRL',
-    }).format(price);
+    };
+
+    if (property.finalidade === 'aluguel') {
+        options.minimumFractionDigits = 0;
+        options.maximumFractionDigits = 0;
+    }
+
+    return new Intl.NumberFormat('pt-BR', options).format(price);
   };
   
   const totalScore = Math.round((property.score.location + property.score.costBenefit + property.score.appreciation) / 3);
@@ -56,8 +63,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             </SwiperSlide>
           ))}
         </Swiper>
-        <div className="absolute top-3 left-3 z-10">
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
           <Badge status={property.status} />
+        </div>
+         <div className="absolute top-3 right-12 z-10 bg-black/50 text-white text-xs font-bold px-2 py-1 rounded-md">
+            CÓD: {property.codigo}
         </div>
         <motion.button
           whileTap={{ scale: 1.3 }}
@@ -83,6 +93,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
                 <Bath size={16} />
                 <span className="text-sm">{property.bathrooms}</span>
             </div>
+            <div className="flex items-center space-x-1">
+                <Car size={16} />
+                <span className="text-sm">{property.vagas}</span>
+            </div>
              <div className="flex items-center space-x-1">
                 <Ruler size={16} />
                 <span className="text-sm">{property.area_m2} m²</span>
@@ -102,7 +116,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
 
         <div className="mt-4 flex items-end justify-between">
             <div>
-                 <p className="text-sm text-neutral-500">Valor</p>
+                 <p className="text-sm text-neutral-500">{property.finalidade === 'venda' ? 'Valor de Venda' : 'Aluguel Mensal'}</p>
                 <p className="text-xl font-bold text-primary-500 font-heading">{formatPrice(property.price)}</p>
             </div>
             <button className="px-4 py-2 text-sm font-semibold text-primary-500 bg-white border-2 border-primary-500 rounded-lg hover:bg-primary-50 transition-colors">
